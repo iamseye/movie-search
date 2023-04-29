@@ -15,8 +15,10 @@ export default function Home() {
   const [message, setMessages] = useState('');
 
   const cachedResults = useMemo(() => {
-    const cached = sessionStorage.getItem(searchQuery);
-    return cached ? JSON.parse(cached) : null;
+    if (typeof sessionStorage !== 'undefined') {
+      const cached = sessionStorage.getItem(searchQuery);
+      return cached ? JSON.parse(cached) : null;
+    }
   }, [searchQuery]);
 
   const handleSearch = () => {

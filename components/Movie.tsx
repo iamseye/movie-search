@@ -12,7 +12,13 @@ const Movie = ({ title, image }: MovieProps) => {
       </div>
 
       {image?.url && (
-        <Image alt={title} src={image.url} width={300} height={300} />
+        <Image
+          alt={title}
+          src={image.url}
+          width={300}
+          height={300}
+          loading="lazy"
+        />
       )}
     </div>
   );
