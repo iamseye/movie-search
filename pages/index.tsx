@@ -15,7 +15,7 @@ export default function Home() {
   const [message, setMessages] = useState('');
 
   const cachedResults = useMemo(() => {
-    const cached = sessionStorage.getItem(encodeURIComponent(searchQuery));
+    const cached = sessionStorage.getItem(searchQuery);
     return cached ? JSON.parse(cached) : null;
   }, [searchQuery]);
 
@@ -28,17 +28,12 @@ export default function Home() {
         setMovies(cachedResults);
         setIsLoading(false);
       } else {
-        const res = await fetch(
-          `/api/movie?search=${encodeURIComponent(searchQuery)}`
-        );
+        const res = await fetch(`/api/movie?search=${searchQuery}`);
         const data = await res.json();
 
         if (res.status === 200) {
           setMovies(data);
-          sessionStorage.setItem(
-            encodeURIComponent(searchQuery),
-            JSON.stringify(data)
-          );
+          sessionStorage.setItem(searchQuery, JSON.stringify(data));
         } else {
           setMessages(data);
         }
@@ -75,7 +70,9 @@ export default function Home() {
             data-testid="searchField"
             className="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 "
             placeholder="Search anything..."
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onChange={(event) =>
+              setSearchQuery(encodeURIComponent(event.target.value))
+            }
             required
           />
           <button
