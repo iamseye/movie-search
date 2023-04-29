@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -12,19 +12,45 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [movies, setMovies] = useState<MovieType[]>([]);
+  const [message, setMessages] = useState('');
+
+  const cachedResults = useMemo(() => {
+    const cached = sessionStorage.getItem(encodeURIComponent(searchQuery));
+    return cached ? JSON.parse(cached) : null;
+  }, [searchQuery]);
 
   const handleSearch = () => {
     const fetchData = async () => {
+      setMessages('');
       setIsLoading(true);
 
-      const res = await fetch(`/api/movie?search=${searchQuery.trim()}`);
-      const movies = await res.json();
-      setMovies(movies);
-      setIsLoading(false);
+      if (cachedResults) {
+        setMovies(cachedResults);
+        setIsLoading(false);
+      } else {
+        const res = await fetch(
+          `/api/movie?search=${encodeURIComponent(searchQuery)}`
+        );
+        const data = await res.json();
+
+        if (res.status === 200) {
+          setMovies(data);
+          sessionStorage.setItem(
+            encodeURIComponent(searchQuery),
+            JSON.stringify(data)
+          );
+        } else {
+          setMessages(data);
+        }
+
+        setIsLoading(false);
+      }
     };
 
     if (searchQuery) {
       fetchData();
+    } else {
+      setMessages('The search query is empty');
     }
   };
 
@@ -61,8 +87,10 @@ export default function Home() {
           </button>
         </div>
         {isLoading && <Spinner />}
+        {!!message && <p>{message}</p>}
 
-        {!!movies?.length &&
+        {!isLoading &&
+          !!movies?.length &&
           movies.map((movie) => (
             <Movie key={movie.id} title={movie.title} image={movie.image} />
           ))}
